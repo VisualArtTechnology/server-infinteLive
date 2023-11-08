@@ -61,6 +61,7 @@ static async Login (req,res) {
         }
     } catch (error) {
        console.log(error);
+       ;
     }
 }
 }
