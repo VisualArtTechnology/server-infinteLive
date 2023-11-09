@@ -1,6 +1,7 @@
 const { Rent, categoryRent, SubCategoryRent } = require("../models/index");
 const fs = require("fs");
 const path = require("path");
+const {Op} = require('sequelize')
 class Controller {
   static async getRent(req, res) {
     try {
@@ -19,6 +20,56 @@ class Controller {
       res.status(200).json(data);
     } catch (error) {
       console.log(error);
+    }
+  }
+  static async getClientRent(req,res) {
+    const page = parseInt(req.query.page) || 1;
+    const perPage = parseInt(req.query.perPage) || 10;
+    const subCategoryId = req.query.subCategoryId; // Menggunakan parameter subCategoryId
+    const searchTerm = req.query.searchTerm;
+  
+    try {
+      let whereClause = {};
+  
+      if (subCategoryId) {
+        const category = await SubCategoryRent.findByPk(subCategoryId); // Mencari kategori berdasarkan ID
+        if (category) {
+          whereClause.subCategoryId = subCategoryId; // Menyaring berdasarkan ID kategori jika ditemukan
+        }
+      }
+      if (searchTerm) {
+        whereClause[Op.or] = [
+          { name: { [Op.iLike]: `%${searchTerm}%` } },
+         
+        ];
+      }
+      const { rows, count } = await Rent.findAndCountAll({
+        include: [
+          {
+            model: SubCategoryRent,
+            include: [
+              {
+                model: categoryRent,
+              },
+            ],
+          },
+        ],
+        where: whereClause,
+        limit: perPage,
+        offset: (page - 1) * perPage
+      },
+      {
+        
+      });
+  
+      res.json({
+        totalPages: Math.ceil(count / perPage),
+        currentPage: page,
+        data: rows
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Internal Server Error' });
     }
   }
   static async postRent(req, res) {
@@ -45,7 +96,8 @@ class Controller {
       const fileSize = file.data.length;
       const ext = path.extname(file.name);
       const fileName = file.md5 + ext;
-      const url = `${req.protocol}://${req.get("host")}/Rent/${fileName}`;
+      // const url = `${req.protocol}://${req.get("host")}/Rent/${fileName}`;
+      const url = `https://90b9399s-3000.asse.devtunnels.ms/Rent/${fileName}`;
       const allowedType = [".png", ".jpg", ".jpeg"];
 
       if (!allowedType.includes(ext.toLowerCase()))
@@ -246,6 +298,30 @@ class Controller {
     }
   }
   static async deleteSubCategoryRent(req, res) {
+    try {
+      const product = await SubCategoryRent.findOne({
+        where: {
+          id: req.params.id,
+        },
+      });
+      if (!product) {
+        throw {
+          name: "Product Not found",
+        };
+      }
+      await SubCategoryRent.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+      res.status(200).json({
+        msg: "SubCategory deleted Successfuly",
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  static async deleteCategoryRent(req, res) {
     try {
       const product = await SubCategoryRent.findOne({
         where: {

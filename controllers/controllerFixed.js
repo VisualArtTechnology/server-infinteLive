@@ -1,7 +1,7 @@
 const {Fixed,categoryFixed,Brand} = require("../models/index")
 const fs = require('fs')
 const path = require('path')
-
+const {Op} = require('sequelize')
 class Controller {
     static async getFixed(req,res) {
         try {
@@ -22,6 +22,43 @@ class Controller {
             console.log(error);
         }
     }
+    static async getClientFixed(req,res) {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10;
+        const BrandId = req.query.BrandId; // Menggunakan parameter BrandId
+        const searchTerm = req.query.searchTerm;
+      
+        try {
+          let whereClause = {};
+      
+          if (BrandId) {
+            const category = await Brand.findByPk(BrandId); // Mencari kategori berdasarkan ID
+            if (category) {
+              whereClause.BrandId = BrandId; // Menyaring berdasarkan ID kategori jika ditemukan
+            }
+          }
+          if (searchTerm) {
+            whereClause[Op.or] = [
+              { name: { [Op.iLike]: `%${searchTerm}%` } },
+             
+            ];
+          }
+          const { rows, count } = await Fixed.findAndCountAll({
+            where: whereClause,
+            limit: perPage,
+            offset: (page - 1) * perPage
+          });
+      
+          res.json({
+            totalPages: Math.ceil(count / perPage),
+            currentPage: page,
+            data: rows
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      }
     static async getFixedById(req,res) {
         try {
             const {id} = req.params
