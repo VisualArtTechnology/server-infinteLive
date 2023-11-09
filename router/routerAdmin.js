@@ -34,7 +34,7 @@ const router = express.Router();
 router.post('/register',ControllerAdmin.registerAdmin)
 router.post('/login',ControllerAdmin.Login)
 
-router.use(authentication)
+// router.use(authentication)
 //fixed
 router.get('/fixed',ControllerFixed.getFixed)
 router.post('/fixed',ControllerFixed.postFixed)
