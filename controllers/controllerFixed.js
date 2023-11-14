@@ -290,7 +290,30 @@ class Controller {
         }
     }
     
-    
+    static async deleteCategoryFixed(req, res) {
+        try {
+          const product = await categoryFixed.findOne({
+            where: {
+              id: req.params.id,
+            },
+          });
+          if (!product) {
+            throw {
+              name: "Category Not found",
+            };
+          }
+          await categoryFixed.destroy({
+            where: {
+              id: req.params.id,
+            },
+          });
+          res.status(200).json({
+            msg: "Category deleted Successfuly",
+          });
+        } catch (error) {
+          console.log(error);
+        }
+      }
 }
 
 module.exports = Controller

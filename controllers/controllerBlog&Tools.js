@@ -1,8 +1,23 @@
+const { Sequelize } = require('sequelize');
 const {Blogs,Tools,toolsCategory} = require('../models/index')
 
 
 class Controller {
     static async getblogs(req,res) {
+        try {
+            const limit = 4; 
+            const data = await Blogs.findAll({
+                order: Sequelize.literal('RANDOM()'), 
+                limit: limit,
+            });
+    
+            res.status(200).json(data);
+        } catch (error) {
+            console.log(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+    static async readBlogs(req,res) {
         try {
             const data = await Blogs.findAll()
             res.status(200).json(data)
@@ -10,6 +25,39 @@ class Controller {
             console.log(error);
         }
     }
+    static async getClientBlogs(req,res) {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10
+        const searchTerm = req.query.searchTerm;
+      
+        try {
+          let whereClause = {};
+      
+          if (searchTerm) {
+            whereClause[Op.or] = [
+              { name: { [Op.iLike]: `%${searchTerm}%` } },
+             
+            ];
+          }
+          const { rows, count } = await Blogs.findAndCountAll({
+            where: whereClause,
+            limit: perPage,
+            offset: (page - 1) * perPage
+          },
+          {
+            
+          });
+      
+          res.json({
+            totalPages: Math.ceil(count / perPage),
+            currentPage: page,
+            data: rows
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      }
     static async postBlogs(req,res) {
         try {
             const {name,image,desc,urls} = req.body 
@@ -94,6 +142,45 @@ class Controller {
             console.log(error);
         }
     }
+    static async getClientTools(req,res) {
+        try {
+            const categoryId = req.query.category_id;
+            const page = parseInt(req.query.page) || 1;
+            const limit = parseInt(req.query.limit) || 10;
+            const searchQuery = req.query.search;
+        
+            const options = {
+              include: [{
+                model: toolsCategory,
+                attributes: ['id', 'name'],
+              }],
+            };
+        
+            let tools = await Tools.findAll(options);
+        
+            if (categoryId) {
+              tools = tools.filter(tool => tool.toolsCategoryId == categoryId);
+            }
+        
+            if (searchQuery) {
+              tools = tools.filter(tool => tool.name.includes(searchQuery));
+            }
+        
+            const startIndex = (page - 1) * limit;
+            const endIndex = page * limit;
+            const paginatedTools = tools.slice(startIndex, endIndex);
+        
+            res.json({
+              tools: paginatedTools,
+              totalItems: tools.length,
+              currentPage: page,
+              totalPages: Math.ceil(tools.length / limit),
+            });
+          } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: 'Internal Server Error' });
+          }
+      }
     static async postTools(req,res) {
         try {
             const {name,link,toolsCategoryId} = req.body
@@ -179,7 +266,6 @@ class Controller {
     static async getCategoryTools(req,res) {
         try {
             const data = await toolsCategory.findAll()
-            console.log(data);
             res.status(200).json(data)
         } catch (error) {
             console.log(error);

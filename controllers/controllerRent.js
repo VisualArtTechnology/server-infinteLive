@@ -108,13 +108,13 @@ class Controller {
       file.mv(`./public/Rent/${fileName}`, async (err) => {
         if (err) return res.status(500).json({ msg: err.message });
         try {
-          await Rent.create({
+         const data =  await Rent.create({
             name: name,
             imgProduct: fileName,
             url: url,
             subCategoryId: subCategoryId,
             price : price,
-            details : details,
+            details : JSON.parse(details),
             smallImg1 : smallImg1,
             smallImg2 : smallImg2,
             smallImg3 : smallImg3,
@@ -126,7 +126,7 @@ class Controller {
             img4 : img4
 
           });
-          res.status(201).json({ msg: "Product Created Successfuly" });
+          res.status(201).json(data);
         } catch (error) {
           console.log(error.message);
         }
@@ -145,6 +145,28 @@ class Controller {
       console.log(error);
     }
   }
+  static async deleteCategory(req,res) {
+    try {
+        const {id} = req.params
+        const data = await categoryRent.findByPk(id)
+        if(!data) {
+            throw {
+                name : 'categoryRent not found'
+            }
+        }
+        await categoryRent.destroy({
+            where : {
+                id
+            }
+        })
+        res.status(200).json({
+            msg : "Deleted Successfuly"
+        })
+    } catch (error) {
+        console.log(error);
+    }
+}
+st
   static async updateRent(req, res) {
     try {
       const {
@@ -200,14 +222,14 @@ class Controller {
             url: url,
             subCategoryId: parseInt(subCategoryId),
             price : price,
-            details : details,
+            details : JSON.parse(details),
             smallImg1 : smallImg1,
             smallImg2 : smallImg2,
             smallImg3 : smallImg3,
             smallImg4 : smallImg4,
             embedVideo : embedVideo , 
             img1 : img1,
-            img2 : img2 ,
+            img2 : img2,
             img3 : img3,
             img4 : img4
         },{
@@ -323,28 +345,65 @@ class Controller {
   }
   static async deleteCategoryRent(req, res) {
     try {
-      const product = await SubCategoryRent.findOne({
+      const product = await categoryRent.findOne({
         where: {
           id: req.params.id,
         },
       });
       if (!product) {
         throw {
-          name: "Product Not found",
+          name: "Category Not found",
         };
       }
-      await SubCategoryRent.destroy({
+      await categoryRent.destroy({
         where: {
           id: req.params.id,
         },
       });
       res.status(200).json({
-        msg: "SubCategory deleted Successfuly",
+        msg: "Category deleted Successfuly",
       });
     } catch (error) {
       console.log(error);
     }
   }
+  static async updateSubCategory(req,res) {
+    try {
+        const {id} = req.params
+        const {name,categoryRentId} = req.body 
+        const data = await SubCategoryRent.findByPk(id)
+        if(!data) {
+            throw {
+                name : 'Subcategory  not found'
+            }
+        }
+        await Blogs.update({
+            name,
+            categoryRentId : parseInt(categoryRentId)
+        })
+        res.status(200).json({
+            msg : 'Updated Successufly'
+        })
+    } catch (error) {
+        console.log(error);
+    }
+}
+static async getSubCategoryById(req, res) {
+  try {
+    const { id } = req.params;
+    const data = await SubCategoryRent.findByPk(id, {
+      include: [categoryRent],
+    });
+    if (!data) {
+      throw {
+        name: "Product not found",
+      };
+    }
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+  }
+}
 }
 
 module.exports = Controller;

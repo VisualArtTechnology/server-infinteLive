@@ -43,7 +43,8 @@ module.exports = {
         type : Sequelize.STRING
       },
       details: {
-        type: Sequelize.TEXT
+        type: Sequelize.JSONB,
+        defaultValue : []
       },
       embedVideo: {
         type: Sequelize.STRING

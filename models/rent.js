@@ -29,8 +29,7 @@ module.exports = (sequelize, DataTypes) => {
     img2 : DataTypes.STRING,
     img3 : DataTypes.STRING,
     img4 : DataTypes.STRING,
-
-    details: DataTypes.TEXT
+    details: DataTypes.JSONB
   }, {
     sequelize,
     modelName: 'Rent',

@@ -20,16 +20,18 @@ router.get('/brandFixed',ControllerFixed.getBrand)
 router.get('/CategoryFixed',ControllerFixed.getCategoryFixed)
 
 
-router.get('/blog',ControllerBlogsTools.getblogs)
+router.get('/blog',ControllerBlogsTools.getClientBlogs)
+router.get('/Blogss',ControllerBlogsTools.getblogs)
 router.get('/blog/:id',ControllerBlogsTools.getBlogsId)
-router.get('/Tools',ControllerBlogsTools.getTools)
+router.get('/Toolss',ControllerBlogsTools.getClientTools)
+router.get('/categoriesTools',ControllerBlogsTools.getCategoryTools)
 
-
-router.get('/rentsProject',ContorlllerProject.getProjectRent)
+router.get('/rentsProject',ContorlllerProject.getClientRentProject)
+router.get('/rentsProject/:id',ContorlllerProject.getProjectRentById)
 router.get('/rentsProject',ContorlllerProject.getProjectRentById)
 router.get('/rentsProjectCategory',ContorlllerProject.getCategoryProjectRent)
 
-router.get('/fixedProject',ContorlllerProject.getProjectFixed)
+router.get('/fixedProject',ContorlllerProject.getClientFixedProject)
 router.get('/fixedProject/:id',ContorlllerProject.getProjectFixedById)
 router.get('/fixedProjectCategory',ContorlllerProject.getCategoryProjectFixed)
 module.exports = router
