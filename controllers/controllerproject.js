@@ -1,5 +1,5 @@
 const {Project,FixedProject,CategoryProjectFixed,categoryProject} = require('../models/index')
-
+const {Op} = require('sequelize')
 
 class Controller {
     static async getProjectRent(req,res) {
@@ -31,9 +31,59 @@ class Controller {
             console.log(error);
         }
     }
+    static async getClientRentProject(req,res) {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10;
+        const categoryProjectId = req.query.categoryProjectId; // Menggunakan parameter categoryProjectId
+        const searchTerm = req.query.searchTerm;
+      
+        try {
+          let whereClause = {};
+      
+          if (categoryProjectId) {
+            const category = await categoryProject.findByPk(categoryProjectId); // Mencari kategori berdasarkan ID
+            if (category) {
+              whereClause.categoryProjectId = categoryProjectId; // Menyaring berdasarkan ID kategori jika ditemukan
+            }
+          }
+          if (searchTerm) {
+            whereClause[Op.or] = [
+              { name: { [Op.iLike]: `%${searchTerm}%` } },
+             
+            ];
+          }
+          const { rows, count } = await Project.findAndCountAll({
+            include: [
+              categoryProject
+            ],
+            where: whereClause,
+            limit: perPage,
+            offset: (page - 1) * perPage
+          },
+          {
+            
+          });
+      
+          res.json({
+            totalPages: Math.ceil(count / perPage),
+            currentPage: page,
+            data: rows
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      }
     static async postProjectRent(req,res) {
         try {
-            const {name,description,imgProject,mainImage,embedVideo,categoryProjectId} = req.body
+            // const url = req.body.embedVideo;
+            
+            const embedVideo = req.body.embedVideo.map(link => {
+                const splitUrl = link.split("/reel/");
+                return splitUrl.length > 1 ? splitUrl[1] : null;
+              });
+            //   console.log(reelIds);
+            const {name,description,imgProject,mainImage,categoryProjectId} = req.body
             const data = await Project.create({
                 name,
                 description,
@@ -147,6 +197,49 @@ class Controller {
             console.log(error);
         }
     }
+    static async getClientFixedProject(req,res) {
+        const page = parseInt(req.query.page) || 1;
+        const perPage = parseInt(req.query.perPage) || 10;
+        const categoryProjectFixedId = req.query.categoryProjectFixedId; // Menggunakan parameter categoryProjectFixedId
+        const searchTerm = req.query.searchTerm;
+      
+        try {
+          let whereClause = {};
+      
+          if (categoryProjectFixedId) {
+            const category = await CategoryProjectFixed.findByPk(categoryProjectFixedId); // Mencari kategori berdasarkan ID
+            if (category) {
+              whereClause.categoryProjectFixedId = categoryProjectFixedId; // Menyaring berdasarkan ID kategori jika ditemukan
+            }
+          }
+          if (searchTerm) {
+            whereClause[Op.or] = [
+              { name: { [Op.iLike]: `%${searchTerm}%` } },
+             
+            ];
+          }
+          const { rows, count } = await FixedProject.findAndCountAll({
+            include: [
+              CategoryProjectFixed
+            ],
+            where: whereClause,
+            limit: perPage,
+            offset: (page - 1) * perPage
+          },
+          {
+            
+          });
+      
+          res.json({
+            totalPages: Math.ceil(count / perPage),
+            currentPage: page,
+            data: rows
+          });
+        } catch (error) {
+          console.error(error);
+          res.status(500).json({ message: 'Internal Server Error' });
+        }
+      }
     static async getProjectFixedById(req,res) {
         try {
             const data = await FixedProject.findOne({

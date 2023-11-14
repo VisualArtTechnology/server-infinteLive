@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   FixedProject.init({
     title: DataTypes.STRING,
-    descTitle: DataTypes.STRING,
+    descTitle: DataTypes.TEXT,
     mainImg: DataTypes.STRING,
     imgProject: DataTypes.ARRAY(DataTypes.STRING),
     embedVideo: DataTypes.ARRAY(DataTypes.STRING),

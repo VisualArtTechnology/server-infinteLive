@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   Project.init({
     name: DataTypes.STRING,
-    description: DataTypes.STRING,
+    description: DataTypes.TEXT,
     imgProject: DataTypes.ARRAY(DataTypes.STRING),
     embedVideo : DataTypes.ARRAY(DataTypes.STRING),
     mainImage : DataTypes.STRING,
